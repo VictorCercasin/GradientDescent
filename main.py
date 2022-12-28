@@ -3,36 +3,21 @@ import math
 import numpy as np
 from sys import exit
 
-width = 800
-height = 400
-f_len = 700
+import graphics
+import gradientDescent
+
+width = 1000
+height = 500
+screenDimentions = [width, height]
+focalLength = 700
 
 pygame.init()
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Gradient Descend")
 clock = pygame.time.Clock()
 
-def TransposePoint(point: list[float]): 
-    x, y = point
-    return(x + width/2, y + height/2)
-
-def ProjectPoint(point: list[float], f_len: float, theta: int):
-    x, y, z = RotationTransformY(point, theta)
-    offsety = 30
-
-    projectionX = f_len*x / (z + f_len) + width/2
-    projectionY = f_len*y / (z + f_len) + height/2 + offsety
-
-    return (projectionX, projectionY)
 
 
-def RotationTransformY(point: list[float], theta):
-    theta = np.deg2rad(theta)
-    R = np.array([[np.cos(theta), 0, np.sin(theta)],
-                  [0, 1, 0],
-                  [-np.sin(theta), 0, np.cos(theta)]])
-    rotated_point = R @ point
-    return rotated_point
 
 
 a = -50
@@ -42,27 +27,54 @@ longe = -50
 
 
 angulo = 0
+
+teste = gradientDescent.GradientDescent(pygame, screen, screenDimentions, focalLength)
+
+
 while True:
     screen.fill((0,0,0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit
-    points = ([a,a,perto],[a,b,perto],[b,a,perto],[b,b,perto],[a,a,longe],[a,b,longe],[b,a,longe],[b,b,longe],)
-    points2 = ([a+105,a,perto],[a+105,b,perto],[b+105,a,perto],[b+105,b,perto],[a+105,a,longe],[a+105,b,longe],[b+105,a,longe],[b+105,b,longe],)
-    # points = [RotationTransformY(point, angulo) for point in points]
-    projections = [ProjectPoint(point, f_len, angulo) for point in points]
-    projections2 = [ProjectPoint(point, f_len, angulo) for point in points2]
-    
-    # for point in points:
-    #     pygame.draw.circle(screen, 'red', TransposePoint((point[0], point[1])), 5)
+    # for i, surface in enumerate(teste._surfaces):
+    #     print(teste._vertices[surface[0]].get2DCoordenates())
+    #     pygame.draw.polygon(screen, 'green', (teste._vertices[surface[0]].get2DCoordenates(),teste._vertices[surface[1]].get2DCoordenates(),teste._vertices[surface[2]].get2DCoordenates(),teste._vertices[surface[3]].get2DCoordenates()))
+
+    for i, edge in enumerate(teste._edges):
+        pygame.draw.line(screen, 'white', teste._vertices[edge[0]].get2DCoordenates(), teste._vertices[edge[1]].get2DCoordenates(), 10)
+
+    pygame.draw.polygon(screen, 'green', (teste._vertices[teste._surfaces1[0]].get2DCoordenates(), teste._vertices[teste._surfaces1[1]].get2DCoordenates(), teste._vertices[teste._surfaces1[2]].get2DCoordenates(), teste._vertices[teste._surfaces1[3]].get2DCoordenates()))
+    pygame.draw.polygon(screen, 'blue', (teste._vertices[teste._surfaces2[0]].get2DCoordenates(), teste._vertices[teste._surfaces2[1]].get2DCoordenates(), teste._vertices[teste._surfaces2[2]].get2DCoordenates(), teste._vertices[teste._surfaces2[3]].get2DCoordenates()))
+    pygame.draw.polygon(screen, 'red', (teste._vertices[teste._surfaces3[0]].get2DCoordenates(), teste._vertices[teste._surfaces3[1]].get2DCoordenates(), teste._vertices[teste._surfaces3[2]].get2DCoordenates(), teste._vertices[teste._surfaces3[3]].get2DCoordenates()))
 
 
 
-    for projection in projections:
-        pygame.draw.circle(screen, 'blue', projection, 2, )
-    for projection in projections2:
-        pygame.draw.circle(screen, 'red', projection, 2)
+
+
+    # points = ([a,a,perto],[b,a,perto],[b,b,perto],[a,b,perto],[a,a,longe],[b,a,longe],[b,b,longe],[a,b,longe],)
+    # points2 = ([a+105,a,perto],[b+105,a,perto],[b+105,b,perto],[a+105,b,perto],[a+105,a,longe],[b+105,a,longe],[b+105,b,longe],[a+105,b,longe],)
+    # points3 = ([a,a,perto-105],[b,a,perto-105],[b,b,perto-105],[a,b,perto-105],[a,a,longe-105],[b,a,longe-105],[b,b,longe-105],[a,b,longe-105],)
+    # edges = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[5,1],[6,2],[7,3]]
+    # surfaces = [[4,5,6,7]]
+    # # points = [RotationTransformY(point, angulo) for point in points]
+    # projections = [graphics.PointInGameSpace(point, screenDimentions, focalLength).get2DCoordenates() for point in points]
+    # projections2 = [graphics.PointInGameSpace(point, screenDimentions, focalLength).get2DCoordenates() for point in points2]
+    # projections3 = [graphics.PointInGameSpace(point, screenDimentions, focalLength).get2DCoordenates() for point in points3]
+
+    colors=['blue', 'blue', 'blue', 'blue', 'yellow', 'yellow', 'yellow', 'yellow', 'green', 'green', 'green', 'green',]
+
+
+
+            
+    # for i, edge in enumerate(edges):
+    #     pygame.draw.line(screen, colors[i % len(colors)], projections[edges[i][0]], projections[edges[i][1]])
+    # for i, edge in enumerate(edges):
+    #     pygame.draw.line(screen, colors[i % len(colors)], projections2[edges[i][0]], projections2[edges[i][1]])
+    # for i, edge in enumerate(edges):
+    #     pygame.draw.line(screen, colors[i % len(colors)], projections3[edges[i][0]], projections3[edges[i][1]])
+
+
 
     
     if(angulo < 360):
