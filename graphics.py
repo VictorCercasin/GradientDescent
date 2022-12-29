@@ -3,20 +3,6 @@ import math
 import numpy as np
 from sys import exit
 
-def ProjectPoint(point: list[float], f_len: float, screenDimentions: int, theta: int):
-    x, y, z =point
-    width, height = screenDimentions
-
-    x, y, z = RotationTransformY(point, 45)
-    x, y, z = RotationTransformX((x, y, z), 30)
-    # x, y, z = RotationTransformZ((x, y, z), 10)
-
-    offsety = 30
-
-    projectionX = f_len*x / (z + f_len) + width/2
-    projectionY = f_len*y / (z + f_len) + height/2 + offsety
-
-    return (projectionX, projectionY)
 
 
 def RotationTransformX(point: list[float], theta):
@@ -50,7 +36,7 @@ class PointInGameSpace:
         self._screenDimentions = screenDimentions
         self._focalLength = focalLength
 
-        self._gamespaceCoordenates = self.ProjectPointInGameSpace(self._coordenates, self._screenDimentions, self._focalLength)
+        self.gamespaceCoordenates = self.ProjectPointInGameSpace(self._coordenates, self._screenDimentions, self._focalLength)
 
 
     def ProjectPointInGameSpace(self, coordenates: list[float],screenDimentions: list[int],focalLength: int):
@@ -60,7 +46,7 @@ class PointInGameSpace:
         x, y, z = RotationTransformX((x, y, z), 30)
         # x, y, z = coordenates
 
-        offsety = 30
+        offsety = -100
 
         projectionX = focalLength*x / (z + focalLength) + width/2
         projectionY = focalLength*y / (z + focalLength) + height/2 + offsety
