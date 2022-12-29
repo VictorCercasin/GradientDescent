@@ -38,6 +38,24 @@ class GradientDescent:
                 elif gradient.get(i,j) < self.lower:
                     self.lower = gradient.get(i,j)
 
+        if(self.lower > 0):
+            return
+        newVertices = []
+        newLower = 1000
+        newHigher = -1000
+        for i in range(20):
+            for j in range(20):
+                parallel = self.Parallelepiped((i, j), gradient.get(i,j) - self.lower, self._screenDimentions, self._focalLength)
+                newVertices.append(parallel.vertices)
+                if gradient.get(i,j)   - self.lower > newHigher:
+                    newHigher = gradient.get(i,j)  - self.lower
+                elif gradient.get(i,j)   - self.lower < newLower:
+                    newLower = gradient.get(i,j)  - self.lower
+        self.vertices = newVertices
+        self.lower = newLower
+        self.higher = newHigher
+
+
 
 
     def RenderGameArea(self):
@@ -48,9 +66,6 @@ class GradientDescent:
             self._pygame.draw.polygon(self._screen, self.heatmap_color(-parallel[self.Parallelepiped.surface3[0]]._coordenates[1]), (parallel[self.Parallelepiped.surface3[0]].gamespaceCoordenates, parallel[self.Parallelepiped.surface3[1]].gamespaceCoordenates, parallel[self.Parallelepiped.surface3[2]].gamespaceCoordenates, parallel[self.Parallelepiped.surface3[3]].gamespaceCoordenates))
 
     def heatmap_color(self, value):
-
-        if value < 0:
-            value +=  abs( self.lower)
         value = value / self.higher
 
         hue = value * 240
@@ -72,8 +87,15 @@ class GradientDescent:
             b = 1.0
         chroma = 1.0
         r = (r - 0.5) * chroma + 0.5
+        if r > 1:
+            r = 1
         g = (g - 0.5) * chroma + 0.5
+        if g > 1:
+            g = 1
         b = (b - 0.5) * chroma + 0.5
+        if b > 1:
+            b = 1
+
         return (r*255, g*255, b*255)
 
 
@@ -105,14 +127,20 @@ class GradientDescent:
     class Gradient:
         def __init__(self):
             self.get = self.generateFunction()
+            #number of wave modes
             self.modes = 100
-            self.aRandomsX = [random.uniform(0,1) for n in range(self.modes)]
-            self.bRandomsX = [random.uniform(0,1) for n in range(self.modes)]
-            self.cRandomsX = [random.uniform(0, math.pi * 2) for n in range(self.modes)]
+            #gradient amplitude multiplier
+            self.multiplier = 3
 
-            self.aRandomsY = [random.uniform(0,1) for n in range(self.modes)]
-            self.bRandomsY = [random.uniform(0,1) for n in range(self.modes)]
-            self.cRandomsY = [random.uniform(0, math.pi * 2) for n in range(self.modes)]
+            #Changes amplitude of the mode
+            self.modeMultiplier = [random.uniform(1,1) for n in range(self.modes)]
+            #xMultiplier and yMultiplier shift the wave angle in relation the the X and Y axies
+            self.xMultiplier = [random.uniform(-1,1) for n in range(self.modes)]
+            self.yMultiplier = [random.uniform(-1,1) for n in range(self.modes)]
+            #determines the possible frequency space. the higher the top range, higher the frequency
+            self.frequencySpace = [random.uniform(0,0.7) for n in range(self.modes)]
+            self.phaseShifter = [random.uniform(0, math.pi * 2) for n in range(self.modes)]
+
 
 
         def generateFunction(self):
@@ -120,10 +148,10 @@ class GradientDescent:
             def function(x, y):
                 xComp = 0
                 yComp = 0
+                xyComp = 0
                 for i in range(self.modes):
-                    xComp += self.aRandomsX[i] * (math.sin((x * self.bRandomsX[i]  + self.cRandomsX[i])) * 5)
-                    yComp += self.aRandomsY[i] * (math.sin((y * self.bRandomsY[i] + self.cRandomsY[i])) * 5)
-                return abs( xComp + yComp + 50)
+                    xyComp += self.modeMultiplier[i] * (math.sin(((self.xMultiplier[i]*x +self.yMultiplier[i]*y) * self.frequencySpace[i] + self.phaseShifter[i])) * self.multiplier)
+                return  xComp + yComp + xyComp
             return function
 
 
