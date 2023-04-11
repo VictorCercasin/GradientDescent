@@ -18,17 +18,9 @@ clock = pygame.time.Clock()
 
 
 
-
-
-a = -50
-b = 50
-perto = 50
-longe = -50
-
-
 angulo = 0
 
-teste = gradientDescent.GradientDescent(pygame, screen, screenDimentions, focalLength)
+gradiente = gradientDescent.GradientDescent(pygame, screen, screenDimentions, focalLength)
 
 
 while True:
@@ -38,7 +30,7 @@ while True:
             pygame.quit()
             exit
 
-    teste.RenderGameArea()
+    gradiente.RenderGameArea()
   
     if(angulo < 360):
         angulo += 1

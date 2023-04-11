@@ -165,10 +165,7 @@ class GradientDescent:
                 b = math.sqrt(a**2 + centerPoint[1  ])
                 self.surfacesCenterPointsDistance.append(b)
             
-            print (self.surfacesCenterPointsDistance, "\n\n\n")
-
-
-            
+         
 
 
 
@@ -198,6 +195,3 @@ class GradientDescent:
                     #f(x, y) = A * sin(B * x + c)
                 return xyComp
             return function
-
-
-        
