@@ -1,6 +1,8 @@
 import pygame
 import math
 import numpy as np
+
+from abc import ABC, abstractmethod
 from sys import exit
 
 
@@ -55,3 +57,21 @@ class PointInGameSpace:
     
     def get2DCoordenates(self):
         return self._gamespaceCoordenates
+    
+
+class ObjectInGameSpace(ABC):
+    @abstractmethod
+    def render(self):
+        pass
+
+class Point(ObjectInGameSpace):
+    def render(self):
+        print("renderizando ponto")
+
+class Line(ObjectInGameSpace):
+    def render(self):
+        print("renderizando linha")
+
+class Parallelepiped(ObjectInGameSpace):
+    def render(self):
+        print("renderizando paralelepipedo")
