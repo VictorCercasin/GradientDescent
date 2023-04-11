@@ -1,7 +1,9 @@
 import math
 import numpy as np
+import json
 from numpy import random
 from sys import exit
+
 
 import graphics
 
@@ -11,10 +13,13 @@ class GradientDescent:
         self._focalLength = focalLength
         self._pygame = pygame
         self._screen = screen
+        self._parallelsPerSide = 20
+        self._characterXYposition = {"x": random.randint(0,self._parallelsPerSide-1), "y": random.randint(0,self._parallelsPerSide-1)}
 
         self.XYZcolors = ['red', 'green', 'blue'] #colors to display the axies
 
         self.vertices = []
+        self.parallels = [[0 for j in range(self._parallelsPerSide)] for i in range(self._parallelsPerSide)]
 
         self.higher = -1000
         self.lower = 1000
@@ -22,17 +27,10 @@ class GradientDescent:
 
 
     def CreateGameArea(self):
-        createParallelsAt = ((0,0,200), (1,0,150), (0,1,150), (1,1,100))
-
-        # for i, coords in enumerate(createParallelsAt):
-        #     parallel = self.Parallelepiped((coords[0], coords[1]), coords[2], self._screenDimentions, self._focalLength)
-        #     self.vertices.append(parallel.vertices)
-
         gradient = self.Gradient()
-        for i in range(20):
-            for j in range(20):
+        for i in range(self._parallelsPerSide):
+            for j in range(self._parallelsPerSide):
                 parallel = self.Parallelepiped((i, j), gradient.get(i,j), self._screenDimentions, self._focalLength)
-                self.vertices.append(parallel.vertices)
                 if gradient.get(i,j) > self.higher:
                     self.higher = gradient.get(i,j)
                 elif gradient.get(i,j) < self.lower:
@@ -43,15 +41,14 @@ class GradientDescent:
         newVertices = []
         newLower = 1000
         newHigher = -1000
-        for i in range(20):
-            for j in range(20):
+        for i in range(self._parallelsPerSide):
+            for j in range(self._parallelsPerSide):
                 parallel = self.Parallelepiped((i, j), gradient.get(i,j) - self.lower, self._screenDimentions, self._focalLength)
-                newVertices.append(parallel.vertices)
+                self.parallels[i][j] = parallel
                 if gradient.get(i,j)   - self.lower > newHigher:
                     newHigher = gradient.get(i,j)  - self.lower
                 elif gradient.get(i,j)   - self.lower < newLower:
                     newLower = gradient.get(i,j)  - self.lower
-        self.vertices = newVertices
         self.lower = newLower
         self.higher = newHigher
 
@@ -59,11 +56,18 @@ class GradientDescent:
 
 
     def RenderGameArea(self):
-        rgb = (102, 0, 51)
-        for i, parallel in enumerate(self.vertices):
-            self._pygame.draw.polygon(self._screen, rgb, (parallel[self.Parallelepiped.surface1[0]].gamespaceCoordenates, parallel[self.Parallelepiped.surface1[1]].gamespaceCoordenates, parallel[self.Parallelepiped.surface1[2]].gamespaceCoordenates, parallel[self.Parallelepiped.surface1[3]].gamespaceCoordenates))
-            self._pygame.draw.polygon(self._screen, [color*0.5 for color in rgb], (parallel[self.Parallelepiped.surface2[0]].gamespaceCoordenates, parallel[self.Parallelepiped.surface2[1]].gamespaceCoordenates, parallel[self.Parallelepiped.surface2[2]].gamespaceCoordenates, parallel[self.Parallelepiped.surface2[3]].gamespaceCoordenates))
-            self._pygame.draw.polygon(self._screen, self.heatmap_color(-parallel[self.Parallelepiped.surface3[0]]._coordenates[1]), (parallel[self.Parallelepiped.surface3[0]].gamespaceCoordenates, parallel[self.Parallelepiped.surface3[1]].gamespaceCoordenates, parallel[self.Parallelepiped.surface3[2]].gamespaceCoordenates, parallel[self.Parallelepiped.surface3[3]].gamespaceCoordenates))
+        rgb = (20, 20, 20)
+        centerPoint = self.parallels[self._characterXYposition["x"]][self._characterXYposition["y"]].centerPoint
+
+        for i in range(self._parallelsPerSide):
+            for j in range(self._parallelsPerSide):
+                self._pygame.draw.polygon(self._screen, rgb, (self.parallels[i][j].vertices[self.Parallelepiped.surface1[0]].gamespaceCoordenates, self.parallels[i][j].vertices[self.Parallelepiped.surface1[1]].gamespaceCoordenates, self.parallels[i][j].vertices[self.Parallelepiped.surface1[2]].gamespaceCoordenates, self.parallels[i][j].vertices[self.Parallelepiped.surface1[3]].gamespaceCoordenates))
+                self._pygame.draw.polygon(self._screen, [color*0.5 for color in rgb], (self.parallels[i][j].vertices[self.Parallelepiped.surface2[0]].gamespaceCoordenates, self.parallels[i][j].vertices[self.Parallelepiped.surface2[1]].gamespaceCoordenates, self.parallels[i][j].vertices[self.Parallelepiped.surface2[2]].gamespaceCoordenates, self.parallels[i][j].vertices[self.Parallelepiped.surface2[3]].gamespaceCoordenates))
+                self._pygame.draw.polygon(self._screen, self.heatmap_color(-self.parallels[i][j].vertices[self.Parallelepiped.surface3[0]]._coordenates[1]), (self.parallels[i][j].vertices[self.Parallelepiped.surface3[0]].gamespaceCoordenates, self.parallels[i][j].vertices[self.Parallelepiped.surface3[1]].gamespaceCoordenates, self.parallels[i][j].vertices[self.Parallelepiped.surface3[2]].gamespaceCoordenates, self.parallels[i][j].vertices[self.Parallelepiped.surface3[3]].gamespaceCoordenates))
+        
+        self._pygame.draw.circle(self._screen, 'red', centerPoint.gamespaceCoordenates, 20)
+        
+
 
     def heatmap_color(self, value):
         value = value / self.higher
@@ -95,24 +99,41 @@ class GradientDescent:
         b = (b - 0.5) * chroma + 0.5
         if b > 1:
             b = 1
+        if r < 0:
+            r = 0
+        g = (g - 0.5) * chroma + 0.5
+        if g < 0:
+            g = 0
+        b = (b - 0.5) * chroma + 0.5
+        if b < 0:
+            b = 0
 
         return (r*255, g*255, b*255)
 
 
+
     class Parallelepiped:
         edges = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]]
-        surfaces = [[1,2,6,5],[2,3,7,6],[4,5,6,7]]
+        surfaces = [[1,2,6,5],[2,3,7,6],[4,5,6,7],[0,4,7,3],[0,4,5,1]]
         surface1 = [1,2,6,5]
         surface2 = [2,3,7,6]
         surface3 = [4,5,6,7]
+
+        surface4 = [0,4,7,3]
+        surface5 = [0,4,5,1]
+
         def __init__(self, pos: list[int], height: float, screenDimentions: list[int], focalLength: float):
             self._xpos, self._zpos = pos
+            self._height = height
             self._side = 10
             self._releaf = 3
             self._screenDimentions = screenDimentions
             self._focalLength = focalLength
 
             self.centerPos = [self._xpos * (self._side+self._releaf) + self._side/2, self._zpos * (self._side + self._releaf) + self._side/2]
+            self.centerPoint = graphics.PointInGameSpace ((self._xpos*(self._side+self._releaf) + self._side/2, -height, -self._zpos*(self._side+self._releaf) - self._side/2), self._screenDimentions, self._focalLength)
+
+
             self.vertices = [ graphics.PointInGameSpace ((self._xpos*(self._side+self._releaf), 0, -self._zpos*(self._side+self._releaf)), self._screenDimentions, self._focalLength), #|-
                               graphics.PointInGameSpace ((self._xpos*(self._side+self._releaf) + self._side, 0, -self._zpos*(self._side+self._releaf)), self._screenDimentions, self._focalLength),#-|
                               graphics.PointInGameSpace ((self._xpos*(self._side+self._releaf) + self._side, 0, -self._zpos*(self._side+self._releaf) - self._side), self._screenDimentions, self._focalLength),#_|
@@ -124,15 +145,42 @@ class GradientDescent:
                               graphics.PointInGameSpace ((self._xpos*(self._side+self._releaf), -height, -self._zpos*(self._side+self._releaf) - self._side), self._screenDimentions, self._focalLength),
             ]
 
+            self.surfacesCenterPoints = []
+            self.surfacesCenterPointsDistance = []
+
+            for surface in self.surfaces:
+                x = 0
+                y = 0
+                z = 0
+                for pointCoord in surface:
+                    point = self.vertices[pointCoord]._rotatedCoordenates
+                    x += point[0]
+                    y += point[1]
+                    z += point[2]
+                self.surfacesCenterPoints.append((x/4, y/4, z/4))
+            # print(self.surfacesCenterPoints, "\n\n\n")
+
+            for centerPoint in self.surfacesCenterPoints:
+                a = math.sqrt((self._focalLength + centerPoint[2]) ** 2 + centerPoint[0] ** 2)
+                b = math.sqrt(a**2 + centerPoint[1  ])
+                self.surfacesCenterPointsDistance.append(b)
+            
+            # print (self.surfacesCenterPointsDistance, "\n\n\n")
+
+
+            
+
+
+
     class Gradient:
         def __init__(self):
-            self.get = self.generateFunction()
+            self.get = self.slopeFunction()
             #number of wave modes
             self.modes = 100
             #gradient amplitude multiplier
-            self.multiplier = 3
+            self.multiplier = 5
 
-            #Changes amplitude of the mode
+            #Mode amplitude
             self.modeMultiplier = [random.uniform(1,1) for n in range(self.modes)]
             #xMultiplier and yMultiplier shift the wave angle in relation the the X and Y axies
             self.xMultiplier = [random.uniform(-1,1) for n in range(self.modes)]
@@ -141,17 +189,14 @@ class GradientDescent:
             self.frequencySpace = [random.uniform(0,0.7) for n in range(self.modes)]
             self.phaseShifter = [random.uniform(0, math.pi * 2) for n in range(self.modes)]
 
-
-
-        def generateFunction(self):
+        def slopeFunction(self):
 
             def function(x, y):
-                xComp = 0
-                yComp = 0
                 xyComp = 0
                 for i in range(self.modes):
                     xyComp += self.modeMultiplier[i] * (math.sin(((self.xMultiplier[i]*x +self.yMultiplier[i]*y) * self.frequencySpace[i] + self.phaseShifter[i])) * self.multiplier)
-                return  xComp + yComp + xyComp
+                    #f(x, y) = A * sin(B * x + c)
+                return xyComp
             return function
 
 

@@ -33,6 +33,7 @@ def RotationTransformZ(point: list[float], theta):
 class PointInGameSpace:
     def __init__(self, coordenates: list[float], screenDimentions: list[int], focalLength: float):
         self._coordenates = coordenates
+        self._rotatedCoordenates = []
         self._screenDimentions = screenDimentions
         self._focalLength = focalLength
 
@@ -44,9 +45,12 @@ class PointInGameSpace:
 
         x, y, z = RotationTransformY(coordenates, 45)
         x, y, z = RotationTransformX((x, y, z), 30)
+
         # x, y, z = coordenates
 
         offsety = -100
+
+        self._rotatedCoordenates = (x,y + offsety,z)
 
         projectionX = focalLength*x / (z + focalLength) + width/2
         projectionY = focalLength*y / (z + focalLength) + height/2 + offsety
